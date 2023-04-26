@@ -108,11 +108,13 @@ recv_msg(S=#{stream_id := Id,
             {ok, V};
         {'DOWN', Ref, process, Pid, _Reason} ->
             case grpcbox_client:recv_trailers(S, 0) of
-                {ok, {<<"0">> = _Status, _Message, _Metadata}} ->
+                {ok, {<<"0">> = _Status, Message, _Metadata}} ->
+                    ct:print("finsihed ~w~n", [Message]),
                     stream_finished;
                 {ok, {Status, Message, Metadata}} ->
                     {error, {Status, Message}, #{trailers => Metadata}};
                 {error, _} ->
+                    ct:print("finsihed error ~w~n", [error]),
                     stream_finished
             end
     after Timeout ->
@@ -120,6 +122,7 @@ recv_msg(S=#{stream_id := Id,
                 true ->
                     timeout;
                 false ->
+                    ct:print("finsihed timeout ~n", []),
                     stream_finished
             end
     end.
@@ -222,4 +225,3 @@ encoding_to_binary(gzip) -> <<"gzip">>;
 encoding_to_binary(deflate) -> <<"deflate">>;
 encoding_to_binary(snappy) -> <<"snappy">>;
 encoding_to_binary(Custom) -> atom_to_binary(Custom, latin1).
-
